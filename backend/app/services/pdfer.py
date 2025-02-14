@@ -7,7 +7,8 @@
 
 import os
 from dotenv import load_dotenv
-
+from bson import Binary
+from io import BytesIO
 load_dotenv()
 
 file_path = os.environ.get("FILE_PATH")
@@ -15,6 +16,8 @@ file_path = os.environ.get("FILE_PATH")
 import fitz  # PyMuPDF
 
 def extract_text_and_images(stream):
+    if not isinstance(stream, BytesIO):
+        raise ValueError("Expected a BytesIO object")
     pdf = {"text": [], "image": []}
     
     doc = fitz.open("pdf", stream)
@@ -22,7 +25,8 @@ def extract_text_and_images(stream):
     for page_num in range(len(doc)):
         page = doc[page_num]
         pdf["text"].append(page.get_text())
-        pdf["image"].append(page.get_images(full=True))
+        binr = Binary(page.get_images(full=True))
+        pdf["image"].append(binr)
 
     return pdf
 '''
